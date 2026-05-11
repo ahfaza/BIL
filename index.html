@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIL 2026 S1 Dashboard</title>
+<style>
+:root{--bg:#0d0d1a;--card:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.1);--accent:#7c3aed;--gold:#f59e0b;--cyan:#06b6d4;--green:#10b981;--pink:#ec4899;--orange:#f97316;--purple:#a855f7;--text:#e2e8f0;--muted:#94a3b8}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#0d0d1a 0%,#1a1040 50%,#0d1a2a 100%);min-height:100vh;color:var(--text);padding:16px}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.hdr h1{font-size:1.5rem;font-weight:800;letter-spacing:-0.02em}
+.hdr h1 span{color:var(--gold)}
+.hdr p{color:var(--muted);font-size:0.82rem;margin-top:3px}
+.badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{padding:5px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;display:flex;align-items:center;gap:5px;border:1px solid}
+.badge.live{background:rgba(16,185,129,.2);color:#10b981;border-color:#10b981}
+.badge.demo{background:rgba(245,158,11,.2);color:#f59e0b;border-color:#f59e0b}
+.badge.period{color:var(--muted);border-color:var(--border)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.banner{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.8rem;color:#f59e0b;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.banner code{background:rgba(0,0,0,.3);padding:1px 6px;border-radius:4px;font-size:.75rem}
+.banner.hidden{display:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;backdrop-filter:blur(10px)}
+.kpi-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kpi-value{font-size:1.6rem;font-weight:800;margin:3px 0;line-height:1}
+.kpi-sub{font-size:.7rem;color:var(--muted)}
+.row2{display:grid;grid-template-columns:300px 1fr;gap:14px;margin-bottom:14px}
+.row3{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:750px){.row2,.row3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;backdrop-filter:blur(10px)}
+.card-title{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;font-weight:600}
+.monthly{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.mc{background:rgba(255,255,255,.04);border-radius:8px;padding:10px;text-align:center}
+.mc-label{font-size:.68rem;color:var(--muted)}
+.mc-val{font-size:1.2rem;font-weight:700;margin:3px 0}
+.mc-sub{font-size:.65rem;color:var(--muted)}
+.mbar{height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:6px}
+.mbar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{color:var(--muted);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--border);font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.04)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.03)}
+.rank{font-weight:700;font-size:.9rem}
+.pname{font-weight:600}
+.tag{display:inline-block;padding:2px 7px;border-radius:10px;font-size:.65rem;font-weight:600}
+.refresh-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:8px}
+.refresh-row p{font-size:.72rem;color:var(--muted)}
+.btn{background:rgba(124,58,237,.3);border:1px solid rgba(124,58,237,.5);color:var(--text);padding:6px 14px;border-radius:8px;font-size:.78rem;cursor:pointer;transition:all .2s}
+.btn:hover{background:rgba(124,58,237,.5)}
+.progress{background:rgba(255,255,255,.1);border-radius:4px;height:5px;margin-top:5px}
+.progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--cyan))}
+.empty-state{text-align:center;padding:30px;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <h1>🏆 <span id="teamName">--</span></h1>
+    <p id="captainInfo">--</p>
+  </div>
+  <div class="badges">
+    <span id="statusBadge" class="badge demo"><span class="dot"></span><span id="statusTxt">Sample Data</span></span>
+    <span id="periodBadge" class="badge period">--</span>
+  </div>
+</div>
+
+<div id="setupBanner" class="banner">
+  ⚙️ <div><strong>Connect your Google Sheet:</strong> Replace <code>YOUR_APPS_SCRIPT_URL_HERE</code> at the top of the &lt;script&gt; with your deployed Apps Script URL. The sheet will then auto-sync every 5 minutes.</div>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="row2">
+  <div class="card">
+    <div class="card-title">Points Breakdown</div>
+    <canvas id="donutChart"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Weekly Progress (W19 → W31)</div>
+    <canvas id="lineChart"></canvas>
+  </div>
+</div>
+
+<div class="row3">
+  <div class="card">
+    <div class="card-title">Monthly Breakdown</div>
+    <div class="monthly" id="monthlyCards"></div>
+    <div class="card-title">POT by Player</div>
+    <canvas id="barChart" height="160"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Player Stats Table</div>
+    <div style="overflow-x:auto">
+      <table id="playerTable">
+        <thead>
+          <tr>
+            <th>#</th><th>Player</th><th>M1 POT</th><th>M2 POT</th><th>M3 POT</th><th>Tot POT</th><th>DRs</th><th>Earnings</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="refresh-row">
+  <p id="lastUpdated">--</p>
+  <button class="btn" onclick="init()">↻ Refresh Data</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+// ================================================================
+// 🔧 STEP 1: Paste your Apps Script URL below after deployment
+// ================================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKUfDV1uzQzltBYIEyOBaDrRVpMSOmsWbNLWW1K_ENES9shJ6kTuPZdDLTn0UuXqzX/exec';
+// ================================================================
+
+// Auto-refresh every 5 minutes when live
+const REFRESH_MS = 5 * 60 * 1000;
+
+const SAMPLE = {
+  teamName:"Dhurandhar Dhandebaaz",
+  captain:"Prateek Bhatnagar",
+  contestPeriod:"Week 19–31 | May 9 – Aug 7, 2026",
+  summary:{
+    totalPoints:33850,month1:2850,month2:0,month3:0,
+    totalPOT:175,totalDRs:0,totalEarnings:0,
+    vconPoints:550,fksPoints:31000
+  },
+  players:[
+    {name:"Viral",      m1POT:35,m2POT:0,m3POT:0,m1E:0,m2E:0,m3E:0,drs:0},
+    {name:"Pranx",      m1POT:35,m2POT:0,m3POT:0,m1E:0,m2E:0,m3E:0,drs:0},
+    {name:"Nileen",     m1POT:35,m2POT:0,m3POT:0,m1E:0,m2E:0,m3E:0,drs:0},
+    {name:"Aditya",     m1POT:35,m2POT:0,m3POT:0,m1E:0,m2E:0,m3E:0,drs:0},
+    {name:"Prateek B.", m1POT:35,m2POT:0,m3POT:0,m1E:0,m2E:0,m3E:0,drs:0}
+  ],
+  weeklyPoints:[
+    {week:"W19",pts:800},{week:"W20",pts:400},{week:"W21",pts:0},{week:"W22",pts:0},
+    {week:"W23",pts:0},{week:"W24",pts:0},{week:"W25",pts:0},{week:"W26",pts:0},
+    {week:"W27",pts:0},{week:"W28",pts:0},{week:"W29",pts:0},{week:"W30",pts:0},{week:"W31",pts:0}
+  ],
+  pointsBreakdown:{pot:2350,fks:31000,vcon:550,earning:0,dr:0},
+  lastUpdated: new Date().toLocaleString('en-IN')
+};
+
+let donutC, lineC, barC, refreshTimer;
+
+async function init() {
+  const isConfigured = APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE';
+  let data = SAMPLE, live = false;
+
+  if (isConfigured) {
+    try {
+      const r = await fetch(APPS_SCRIPT_URL);
+      data = await r.json();
+      live = true;
+      document.getElementById('setupBanner').classList.add('hidden');
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(init, REFRESH_MS);
+    } catch(e) {
+      console.warn('Live fetch failed, showing sample data', e);
+    }
+  }
+  render(data, live);
+}
+
+function render(d, live) {
+  const s = d.summary;
+
+  // Header
+  document.getElementById('teamName').textContent = d.teamName;
+  document.getElementById('captainInfo').textContent = `Captain: ${d.captain}`;
+  document.getElementById('periodBadge').textContent = d.contestPeriod;
+  const sb = document.getElementById('statusBadge');
+  sb.className = 'badge ' + (live ? 'live' : 'demo');
+  document.getElementById('statusTxt').textContent = live ? 'Live Data' : 'Sample Data';
+
+  // KPIs
+  const kpis = [
+    {lbl:'Total Points',val:s.totalPoints.toLocaleString(),sub:'All 3 Months',clr:'var(--gold)'},
+    {lbl:'Month 1',val:s.month1.toLocaleString(),sub:'W19–W22',clr:'var(--accent)'},
+    {lbl:'Month 2',val:s.month2.toLocaleString(),sub:'W23–W26',clr:'var(--cyan)'},
+    {lbl:'Month 3',val:s.month3.toLocaleString(),sub:'W27–W31',clr:'var(--green)'},
+    {lbl:'Total POT',val:s.totalPOT,sub:'Points on Track',clr:'var(--pink)'},
+    {lbl:'Total DRs',val:s.totalDRs,sub:'Signups',clr:'var(--orange)'},
+    {lbl:'Vcon Points',val:s.vconPoints.toLocaleString(),sub:'Hotel + Reg',clr:'var(--cyan)'},
+    {lbl:'FKS Points',val:s.fksPoints.toLocaleString(),sub:'F3 Bonus',clr:'var(--purple)'},
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k=>`
+    <div class="kpi">
+      <div class="kpi-label">${k.lbl}</div>
+      <div class="kpi-value" style="color:${k.clr}">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+
+  // Monthly cards
+  const mx = Math.max(s.month1, s.month2, s.month3, 1);
+  const months = [
+    {lbl:'Month 1',val:s.month1,wk:'W19–W22',clr:'#7c3aed'},
+    {lbl:'Month 2',val:s.month2,wk:'W23–W26',clr:'#06b6d4'},
+    {lbl:'Month 3',val:s.month3,wk:'W27–W31',clr:'#10b981'},
+  ];
+  document.getElementById('monthlyCards').innerHTML = months.map(m=>`
+    <div class="mc">
+      <div class="mc-label">${m.lbl}</div>
+      <div class="mc-val" style="color:${m.clr}">${m.val.toLocaleString()}</div>
+      <div class="mc-sub">${m.wk}</div>
+      <div class="mbar"><div class="mbar-fill" style="width:${(m.val/mx*100)||0}%;background:${m.clr}"></div></div>
+    </div>`).join('');
+
+  // Player table
+  const sorted = [...d.players].sort((a,b)=>(b.m1POT+b.m2POT+b.m3POT)-(a.m1POT+a.m2POT+a.m3POT));
+  const medals = ['🥇','🥈','🥉'];
+  document.querySelector('#playerTable tbody').innerHTML = sorted.map((p,i)=>{
+    const tot = p.m1POT+p.m2POT+p.m3POT;
+    const earn = (p.m1E||0)+(p.m2E||0)+(p.m3E||0);
+    return `<tr>
+      <td class="rank">${medals[i]||i+1}</td>
+      <td class="pname">${p.name}</td>
+      <td>${p.m1POT}</td><td>${p.m2POT||0}</td><td>${p.m3POT||0}</td>
+      <td><strong style="color:var(--gold)">${tot}</strong></td>
+      <td>${p.drs||0}</td>
+      <td>$${earn.toFixed(0)}</td>
+    </tr>`;
+  }).join('');
+
+  // Donut chart
+  const pb = d.pointsBreakdown;
+  if (donutC) donutC.destroy();
+  donutC = new Chart(document.getElementById('donutChart'),{
+    type:'doughnut',
+    data:{
+      labels:['POT Pts','FKS Pts','Vcon Pts','Earning Pts','DR Pts'],
+      datasets:[{
+        data:[pb.pot,pb.fks,pb.vcon,pb.earning||0,pb.dr||0],
+        backgroundColor:['#7c3aed','#f59e0b','#06b6d4','#10b981','#ec4899'],
+        borderWidth:2,borderColor:'rgba(255,255,255,.08)'
+      }]
+    },
+    options:{
+      responsive:true,cutout:'60%',
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#94a3b8',font:{size:11},boxWidth:11,padding:8}}
+      }
+    }
+  });
+
+  // Line chart
+  if (lineC) lineC.destroy();
+  lineC = new Chart(document.getElementById('lineChart'),{
+    type:'line',
+    data:{
+      labels:d.weeklyPoints.map(w=>w.week),
+      datasets:[{
+        label:'Weekly Points',
+        data:d.weeklyPoints.map(w=>w.pts),
+        borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.15)',
+        fill:true,tension:.4,pointBackgroundColor:'#f59e0b',pointRadius:4,pointHoverRadius:6
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y.toLocaleString()+' pts'}}},
+      scales:{
+        x:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},
+        y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}}
+      }
+    }
+  });
+
+  // Bar chart
+  if (barC) barC.destroy();
+  barC = new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{
+      labels:d.players.map(p=>p.name.split(' ')[0]),
+      datasets:[
+        {label:'M1 POT',data:d.players.map(p=>p.m1POT),backgroundColor:'rgba(124,58,237,.85)'},
+        {label:'M2 POT',data:d.players.map(p=>p.m2POT||0),backgroundColor:'rgba(6,182,212,.85)'},
+        {label:'M3 POT',data:d.players.map(p=>p.m3POT||0),backgroundColor:'rgba(16,185,129,.85)'},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{labels:{color:'#94a3b8',font:{size:10},boxWidth:10}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},
+        y:{stacked:true,ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}}
+      }
+    }
+  });
+
+  document.getElementById('lastUpdated').textContent =
+    `Last updated: ${d.lastUpdated} ${live?'(live — refreshes every 5 min)':'(sample data)'}`;
+}
+
+init();
+</script>
+</body>
+</html>
